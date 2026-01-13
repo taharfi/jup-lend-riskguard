@@ -4,7 +4,8 @@ import { useState } from "react";
 
 import { calculateRiskScore, getRiskLevel } from "../lib/riskScore";
 import WalletImport from "../components/WalletImport";
-import { Position } from "@/types/position";
+import { Position } from "../types/position";
+
 
 import DashboardLayout from "../components/layout/DashboardLayout";
 import OverviewGrid from "../components/dashboard/OverviewGrid";
