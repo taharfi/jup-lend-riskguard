@@ -1,4 +1,5 @@
-import { Position } from "@/types/position";
+import { Position } from "../types/position";
+
 
 /**
  * Risk levels returned by the engine
