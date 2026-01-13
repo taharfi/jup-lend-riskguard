@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { Position } from "@/types/position";
+import { Position } from "../../../types/position";
+
 
 /**
  * GET /api/position?wallet=...
