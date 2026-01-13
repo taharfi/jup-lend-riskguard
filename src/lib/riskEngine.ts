@@ -1,5 +1,9 @@
 export type RiskLevel = "SAFE" | "WARNING" | "DANGER";
 
+/* =========================
+   INPUT / OUTPUT TYPES
+========================= */
+
 type RiskInput = {
   healthFactor: number;
   collateralRatio: number;
@@ -12,19 +16,25 @@ export type RiskResult = {
   message: string;
 };
 
+/* =========================
+   HELPERS
+========================= */
+
 function clamp(value: number, min = 0, max = 100) {
   return Math.min(max, Math.max(min, value));
 }
 
+/* =========================
+   CORE RISK ENGINE
+========================= */
+
 export function evaluateRisk(input: RiskInput): RiskResult {
   const { healthFactor, collateralRatio, volatility } = input;
 
-  // Normalize factors to 0–100 risk contribution
-  const hfRisk = clamp((2 - healthFactor) * 50); // HF < 2 increases risk
+  const hfRisk = clamp((2 - healthFactor) * 50);
   const collateralRisk = clamp((180 - collateralRatio) * 0.5);
   const volatilityRisk = clamp(volatility);
 
-  // Weighted score
   const score = clamp(
     hfRisk * 0.5 +
       collateralRisk * 0.3 +
@@ -48,6 +58,11 @@ export function evaluateRisk(input: RiskInput): RiskResult {
     message,
   };
 }
+
+/* =========================
+   TIME TO LIQUIDATION
+========================= */
+
 export function estimateTimeToLiquidation(
   healthFactor: number,
   riskScore: number,
@@ -56,13 +71,11 @@ export function estimateTimeToLiquidation(
   hours: number;
   label: string;
 } {
-  // Base time decreases as risk increases
   let hours = 72;
 
   hours -= riskScore * 0.6;
   hours -= volatility * 0.3;
 
-  // Health factor buffer
   if (healthFactor < 1.4) hours -= 12;
   if (healthFactor < 1.2) hours -= 24;
 
@@ -75,6 +88,11 @@ export function estimateTimeToLiquidation(
 
   return { hours, label };
 }
+
+/* =========================
+   RECOMMENDATIONS
+========================= */
+
 export type Recommendation = {
   type: "ADD_COLLATERAL" | "REDUCE_BORROW" | "VOLATILITY_WARNING";
   message: string;
@@ -127,11 +145,16 @@ export function generateRecommendations(
 
   return recommendations;
 }
+
+/* =========================
+   SIMULATION
+========================= */
+
 export type SimulationResult = {
-  priceDrop: number; // %
+  priceDrop: number;
   riskLevel: RiskLevel;
   riskScore: number;
-  timeToLiquidation: number; // hours
+  timeToLiquidation: number;
 };
 
 export function simulatePriceDrop(
@@ -142,7 +165,6 @@ export function simulatePriceDrop(
   },
   dropPercent: number
 ): SimulationResult {
-  // Simulate impact
   const newCollateralRatio =
     base.collateralRatio * (1 - dropPercent / 100);
 
@@ -173,6 +195,11 @@ export function simulatePriceDrop(
     timeToLiquidation: ttl.hours,
   };
 }
+
+/* =========================
+   RISK EXPLANATION (FIXED)
+========================= */
+
 export type RiskFactor =
   | "Health Factor"
   | "Collateral Ratio"
@@ -183,7 +210,6 @@ export type RiskExplanation = {
   contribution: number;
   message: string;
 };
-
 
 export function explainRisk(input: {
   healthFactor: number;
@@ -203,7 +229,7 @@ export function explainRisk(input: {
 
   if (total === 0) return [];
 
-  return [
+  const explanations: RiskExplanation[] = [
     {
       factor: "Health Factor",
       contribution: Math.round((hfImpact * 0.5 * 100) / total),
@@ -226,5 +252,7 @@ export function explainRisk(input: {
       message:
         "Market volatility can rapidly push positions toward liquidation.",
     },
-  ].filter((f) => f.contribution > 0);
+  ];
+
+  return explanations.filter((e) => e.contribution > 0);
 }
