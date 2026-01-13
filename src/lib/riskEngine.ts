@@ -173,11 +173,17 @@ export function simulatePriceDrop(
     timeToLiquidation: ttl.hours,
   };
 }
+export type RiskFactor =
+  | "Health Factor"
+  | "Collateral Ratio"
+  | "Volatility";
+
 export type RiskExplanation = {
-  factor: "Health Factor" | "Collateral Ratio" | "Volatility";
-  contribution: number; // %
+  factor: RiskFactor;
+  contribution: number;
   message: string;
 };
+
 
 export function explainRisk(input: {
   healthFactor: number;
