@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Position } from "@/types/position";
+import { Position } from "../types/position";
 
 interface WalletImportProps {
   onPositionLoaded: (position: Position) => void;
