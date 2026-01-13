@@ -173,3 +173,52 @@ export function simulatePriceDrop(
     timeToLiquidation: ttl.hours,
   };
 }
+export type RiskExplanation = {
+  factor: "Health Factor" | "Collateral Ratio" | "Volatility";
+  contribution: number; // %
+  message: string;
+};
+
+export function explainRisk(input: {
+  healthFactor: number;
+  collateralRatio: number;
+  volatility: number;
+}): RiskExplanation[] {
+  const { healthFactor, collateralRatio, volatility } = input;
+
+  const hfImpact = Math.max(0, (2 - healthFactor) * 50);
+  const collateralImpact = Math.max(0, (180 - collateralRatio) * 0.5);
+  const volatilityImpact = volatility;
+
+  const total =
+    hfImpact * 0.5 +
+    collateralImpact * 0.3 +
+    volatilityImpact * 0.2;
+
+  if (total === 0) return [];
+
+  return [
+    {
+      factor: "Health Factor",
+      contribution: Math.round((hfImpact * 0.5 * 100) / total),
+      message:
+        "Lower health factor reduces your safety buffer against liquidation.",
+    },
+    {
+      factor: "Collateral Ratio",
+      contribution: Math.round(
+        (collateralImpact * 0.3 * 100) / total
+      ),
+      message:
+        "Collateral ratio below optimal levels increases liquidation pressure.",
+    },
+    {
+      factor: "Volatility",
+      contribution: Math.round(
+        (volatilityImpact * 0.2 * 100) / total
+      ),
+      message:
+        "Market volatility can rapidly push positions toward liquidation.",
+    },
+  ].filter((f) => f.contribution > 0);
+}
